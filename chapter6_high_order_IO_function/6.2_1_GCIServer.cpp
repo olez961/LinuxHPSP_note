@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
         // 关闭标准输出STDOUT_FILENO，该值是1
         close(STDOUT_FILENO);
         // 复制socket文件描述符connfd
+        // dup函数创建一个新的文件描述符，该文件描述符与原有文件描述符指向相同的文件、管道或者网络连接
         dup(connfd);    // 由于dup总是返回系统中最小的可用文件描述符，所以这里返回值是1，即标准输出
         // 此时标准输出直接被发送到socket中，因此该输出被客户端获得而不是输出在服务器程序的终端上
         printf("abcd\n");   // 此即CGI服务器的基本工作原理
