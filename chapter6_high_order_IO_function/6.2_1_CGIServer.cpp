@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-// GCI服务器基本原理
+// CGI服务器基本原理
 // 将服务器上的输出发送到客户端
 
 // 两个参数一个是输入参数个数，一个是储存输入参数的字符数组
