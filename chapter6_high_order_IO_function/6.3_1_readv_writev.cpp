@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
             iv[0].iov_len = strlen(header_buf);
             iv[1].iov_base = file_buf;
             iv[1].iov_len = file_stat.st_size;
+            // 注意这里用的是writev而下面用的是send函数
             ret = writev(connfd, iv, 2);
         }
         else /*如果目标文件无效，则通知客户端服务器发生了“内部错误”*/
