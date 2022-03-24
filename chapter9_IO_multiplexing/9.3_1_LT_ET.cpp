@@ -13,6 +13,7 @@
 #include<pthread.h>
 #define MAX_EVENT_NUMBER 1024
 #define BUFFER_SIZE 10
+// 这段代码我跑不起来，暂时放弃了
 /*将文件描述符设置成非阻塞的*/
 int setnonblocking(int fd)
 {
@@ -31,8 +32,11 @@ void addfd(int epollfd, int fd, bool enable_et)
     {
         event.events |= EPOLLET;
     }
+    // 通过对epoll中的epdf参数的修改尝试将fd注册到epoll内核事件表中
     epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
-    setnonblocking(fd);
+    // 每个使用ET模式的文件描述符都应该是非阻塞的。
+    // 如果文件描述符是阻塞的，那么读或写操作将会因为没有后续的事件而一直处于阻塞状态（饥渴状态）
+    setnonblocking(fd); // 将文件描述符设置为非阻塞的
 }
 /*LT模式的工作流程*/
 void lt(epoll_event *events, int number, int epollfd, int listenfd)
@@ -51,6 +55,7 @@ void lt(epoll_event *events, int number, int epollfd, int listenfd)
         }
         else if (events[i].events&EPOLLIN)
         {
+            // 可以看到这里只会尝试读取一次
             /*只要socket读缓存中还有未读出的数据，这段代码就被触发*/
             printf("event trigger once\n");
             memset(buf, '\0', BUFFER_SIZE);
@@ -84,6 +89,7 @@ void et(epoll_event *events, int number, int epollfd, int listenfd)
         }
         else if (events[i].events&EPOLLIN)
         {
+            // 这里会尝试读取完该连接上的数据，避免重复通知应用程序处理
             /*这段代码不会被重复触发，所以我们循环读取数据，以确保把socket读缓存中的所有数据读出*/
             printf("event trigger once\n");
             while (1)
@@ -92,7 +98,8 @@ void et(epoll_event *events, int number, int epollfd, int listenfd)
                 int ret = recv(sockfd, buf, BUFFER_SIZE - 1, 0);
                 if (ret<0)
                 {
-                    /*对于非阻塞IO，下面的条件成立表示数据已经全部读取完毕。此后，epoll就能再次触发sockfd上的EPOLLIN事件，以驱动下一次读操作*/
+                    /*对于非阻塞IO，下面的条件成立表示数据已经全部读取完毕。
+                    此后，epoll就能再次触发sockfd上的EPOLLIN事件，以驱动下一次读操作*/
                     if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
                     {
                         printf("read later\n");
@@ -101,7 +108,7 @@ void et(epoll_event *events, int number, int epollfd, int listenfd)
                     close(sockfd);
                     break;
                 }
-                else if (ret == 0)
+                else if (ret == 0)  // 说明读完了，下次进入循环ret小于0，退出
                 {
                     close(sockfd);
                 }
@@ -138,12 +145,17 @@ int main(int argc, char *argv[])
     assert(ret != -1);
     ret = listen(listenfd, 5);
     assert(ret != -1);
+    
     epoll_event events[MAX_EVENT_NUMBER];
+    // 创建一个额外的文件描述符号来标识内核中的事件表
     int epollfd = epoll_create(5);
     assert(epollfd != -1);
+    // 通过调用epoll_ctl函数将监听到的文件描述符注册进内核事件表
     addfd(epollfd, listenfd, true);
     while (1)
     {
+        // epoll_wait用于在一段时间内等待一组文件描述符上的事件，返回就绪的文件描述符的个数
+        // 如果检测到事件，就将所有就绪的事件从事件表中复制到events指向的数组中
         int ret = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
         if (ret<0)
         {
