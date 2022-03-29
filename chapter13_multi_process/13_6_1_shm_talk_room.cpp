@@ -21,7 +21,7 @@
 #define MAX_EVENT_NUMBER 1024
 #define PROCESS_LIMIT 65536
 
-// 基于共享队列实现的多进程聊天室程序
+// 基于共享内存实现的多进程聊天室程序
 /*处理一个客户连接必要的数据*/
 struct client_data
 {
