@@ -14,6 +14,8 @@
 #include "15_5_1_thread_pool.h"
 #include "15_6_1_http_conn.h"
 
+// 注意要这样编译g++ -g -pthread 15_6_2_main.cpp 15_6_1_http_conn.cpp -o test
+// 否则会提示undefined reference to `http_conn::****'
 #define MAX_FD 65536
 #define MAX_EVENT_NUMBER 10000
 
