@@ -14,6 +14,8 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include "15_3_1_process_pool.h" /*引用上一节介绍的进程池*/
+
+// 这个程序我不知道怎么测试，加上ip和端口号总是显示assert失败，但是具体不知道是哪里出了问题
 /*用于处理客户CGI请求的类，它可以作为processpool类的模板参数*/
 class cgi_conn
 {
