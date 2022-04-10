@@ -72,7 +72,7 @@ private:
     int m_process_number;
     /*子进程在池中的序号，从0开始*/
     int m_idx;
-    /*子进程在池中的序号，从0开始*/
+    /*每个进程都有一个epoll内核事件表，用m_epollfd标识*/
     int m_epollfd;
     /*监听socket*/
     int m_listenfd;
